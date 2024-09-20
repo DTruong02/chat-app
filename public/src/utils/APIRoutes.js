@@ -1,8 +1,9 @@
 export const host = "http://localhost:5000";
-export const loginRoute = `/api/auth/login`;
-export const registerRoute = `/api/auth/register`;
-export const logoutRoute = `/api/auth/logout`;
-export const allUsersRoute = `/api/auth/allusers`;
-export const sendMessageRoute = `/api/messages/addmsg`;
-export const recieveMessageRoute = `/api/messages/getmsg`;
-export const setAvatarRoute = `/api/auth/setavatar`;
+export const deployHost = "https://react-chat-app-delta-eight.vercel.app";
+export const loginRoute = `${deployHost}/api/auth/login`;
+export const registerRoute = `${deployHost}/api/auth/register`;
+export const logoutRoute = `${deployHost}/api/auth/logout`;
+export const allUsersRoute = `${deployHost}/api/auth/allusers`;
+export const sendMessageRoute = `${deployHost}/api/messages/addmsg`;
+export const recieveMessageRoute = `${deployHost}/api/messages/getmsg`;
+export const setAvatarRoute = `${deployHost}/api/auth/setavatar`;

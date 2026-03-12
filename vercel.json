@@ -1,25 +1,11 @@
 {
-  "version": 2,
-  "builds": [
+  "installCommand": "npm install && npm --prefix public install",
+  "buildCommand": "npm --prefix public run build",
+  "outputDirectory": "public/build",
+  "rewrites": [
     {
-      "src": "public/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }

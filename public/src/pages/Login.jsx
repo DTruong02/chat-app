@@ -30,10 +30,7 @@ export default function Login() {
 
   const validateForm = () => {
     const { username, password } = values;
-    if (username === "") {
-      toast.error("Email and Password is required.", toastOptions);
-      return false;
-    } else if (password === "") {
+    if (username === "" || password === "") {
       toast.error("Email and Password is required.", toastOptions);
       return false;
     }
@@ -43,21 +40,28 @@ export default function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (validateForm()) {
-      const { username, password } = values;
-      const { data } = await axios.post(loginRoute, {
-        username,
-        password,
-      });
-      if (data.status === false) {
-        toast.error(data.msg, toastOptions);
-      }
-      if (data.status === true) {
-        localStorage.setItem(
-          process.env.REACT_APP_LOCALHOST_KEY,
-          JSON.stringify(data.user)
-        );
+      try {
+        const { username, password } = values;
+        const { data } = await axios.post(loginRoute, {
+          username,
+          password,
+        });
+        if (data.status === false) {
+          toast.error(data.msg, toastOptions);
+        }
+        if (data.status === true) {
+          localStorage.setItem(
+            process.env.REACT_APP_LOCALHOST_KEY,
+            JSON.stringify(data.user)
+          );
 
-        navigate("/");
+          navigate("/");
+        }
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.msg || "Unable to log in right now.",
+          toastOptions
+        );
       }
     }
   };

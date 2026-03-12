@@ -18,7 +18,7 @@ Both should be installed and make sure mongodb is running.
 #### First Method
 ```shell
 git clone
-cd chat-app-react-nodejs
+cd chat-app
 ```
 Now rename env files from .env.example to .env
 ```shell
@@ -66,3 +66,31 @@ after the build is complete run the containers using the following command
 docker compose up
 ```
 now open localhost:3000 in your browser.
+
+## Deploying to Vercel
+
+This repository is configured to deploy both the frontend and API from the project root using `vercel.json`.
+
+### 1) Set Vercel project root
+
+Set the Vercel project root to the `chat-app` folder.
+
+### 2) Add environment variables in Vercel
+
+Backend:
+- `MONGODB_URI` = your MongoDB connection string
+- `CLIENT_URL` = your deployed frontend URL (optional, used for local socket CORS setup)
+
+Frontend:
+- `REACT_APP_LOCALHOST_KEY` = `chat-app-current-user`
+- `REACT_APP_API_URL` = leave empty when API is served from same Vercel domain
+- `REACT_APP_SOCKET_HOST` = optional; set this only if socket server is hosted separately
+
+### 3) Redeploy
+
+After saving env vars, trigger a redeploy so frontend build-time variables are updated.
+
+### Notes
+
+- Auth and message REST APIs are served through `/api/*` on Vercel.
+- Socket.IO real-time delivery is not reliably supported on Vercel serverless functions for persistent connections; host sockets separately if you need live push updates.

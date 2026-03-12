@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoMdSend } from "react-icons/io";
 import styled from "styled-components";
@@ -47,6 +48,10 @@ export default function ChatInput({ handleSendMsg }) {
     </Container>
   );
 }
+
+ChatInput.propTypes = {
+  handleSendMsg: PropTypes.func.isRequired,
+};
 
 const Container = styled.div`
   display: grid;

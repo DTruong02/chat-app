@@ -1,53 +1,28 @@
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const authRoutes = require("./routes/auth");
-const messageRoutes = require("./routes/messages");
-const app = express();
-const socket = require("socket.io");
 require("dotenv").config();
+const app = require("./app");
+const socket = require("socket.io");
 
-app.use(cors());
-app.use(express.json());
+const port = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("DB Connetion Successfull");
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });
-
-app.get("/ping", (_req, res) => {
-  return res.json({ msg: "Ping Successful" });
-});
-
-app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
-
-const server = app.listen(process.env.PORT, () =>
-  console.log(`Server started on ${process.env.PORT}`)
+const server = app.listen(port, () =>
+  console.log(`Server started on ${port}`)
 );
 const io = socket(server, {
   cors: {
-    origin: "http://localhost:5000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true,
   },
 });
 
-global.onlineUsers = new Map();
+globalThis.onlineUsers = globalThis.onlineUsers || new Map();
 io.on("connection", (socket) => {
-  global.chatSocket = socket;
+  globalThis.chatSocket = socket;
   socket.on("add-user", (userId) => {
-    onlineUsers.set(userId, socket.id);
+    globalThis.onlineUsers.set(userId, socket.id);
   });
 
   socket.on("send-msg", (data) => {
-    const sendUserSocket = onlineUsers.get(data.to);
+    const sendUserSocket = globalThis.onlineUsers.get(data.to);
     if (sendUserSocket) {
       socket.to(sendUserSocket).emit("msg-recieve", data.msg);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import styled from "styled-components";
 import ChatInput from "./ChatInput";
 import Logout from "./Logout";
@@ -11,37 +12,50 @@ export default function ChatContainer({ currentChat, socket }) {
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
 
-  useEffect(async () => {
-    const data = await JSON.parse(
-      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-    );
-    const response = await axios.post(recieveMessageRoute, {
-      from: data._id,
-      to: currentChat._id,
-    });
-    setMessages(response.data);
-  }, [currentChat]);
-
   useEffect(() => {
-    const getCurrentChat = async () => {
-      if (currentChat) {
-        await JSON.parse(
-          localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-        )._id;
+    const loadMessages = async () => {
+      if (!currentChat?._id) {
+        setMessages([]);
+        return;
       }
+
+      const storedUser = localStorage.getItem(
+        process.env.REACT_APP_LOCALHOST_KEY
+      );
+
+      if (!storedUser) {
+        setMessages([]);
+        return;
+      }
+
+      const data = JSON.parse(storedUser);
+      const response = await axios.post(recieveMessageRoute, {
+        from: data._id,
+        to: currentChat._id,
+      });
+      setMessages(response.data);
     };
-    getCurrentChat();
+
+    loadMessages();
   }, [currentChat]);
 
   const handleSendMsg = async (msg) => {
+    if (!currentChat?._id) {
+      return;
+    }
+
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
-    socket.current.emit("send-msg", {
-      to: currentChat._id,
-      from: data._id,
-      msg,
-    });
+
+    if (socket.current) {
+      socket.current.emit("send-msg", {
+        to: currentChat._id,
+        from: data._id,
+        msg,
+      });
+    }
+
     await axios.post(sendMessageRoute, {
       from: data._id,
       to: currentChat._id,
@@ -54,12 +68,20 @@ export default function ChatContainer({ currentChat, socket }) {
   };
 
   useEffect(() => {
-    if (socket.current) {
-      socket.current.on("msg-recieve", (msg) => {
+    const currentSocket = socket.current;
+
+    if (currentSocket) {
+      const handleMessageReceive = (msg) => {
         setArrivalMessage({ fromSelf: false, message: msg });
-      });
+      };
+
+      currentSocket.on("msg-recieve", handleMessageReceive);
+
+      return () => {
+        currentSocket.off("msg-recieve", handleMessageReceive);
+      };
     }
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
@@ -68,6 +90,10 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  if (!currentChat) {
+    return null;
+  }
 
   return (
     <Container>
@@ -106,6 +132,21 @@ export default function ChatContainer({ currentChat, socket }) {
     </Container>
   );
 }
+
+ChatContainer.propTypes = {
+  currentChat: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    avatarImage: PropTypes.string.isRequired,
+    username: PropTypes.string.isRequired,
+  }),
+  socket: PropTypes.shape({
+    current: PropTypes.shape({
+      emit: PropTypes.func,
+      on: PropTypes.func,
+      off: PropTypes.func,
+    }),
+  }).isRequired,
+};
 
 const Container = styled.div`
   display: grid;

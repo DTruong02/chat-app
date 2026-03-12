@@ -2108,6 +2108,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@multiavatar/multiavatar@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@multiavatar/multiavatar@npm:1.0.7"
+  checksum: 6f4a79f3d27091b2b36485d786bfd1b790d02a1af9fd9eb1a98e7b0b1806d074258b1dfe60abe5a1e7684a48205423bd08accd147d0b656e173e27da375fd598
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -4218,12 +4225,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "chat-app@workspace:."
   dependencies:
+    "@multiavatar/multiavatar": ^1.0.7
     "@testing-library/jest-dom": ^5.16.2
     "@testing-library/react": ^12.1.2
     "@testing-library/user-event": ^13.5.0
     axios: ^0.28.1
     buffer: ^6.0.3
     emoji-picker-react: ^3.5.1
+    prop-types: ^15.8.1
     react: ^17.0.2
     react-dom: ^17.0.2
     react-icons: ^4.3.1
@@ -10232,7 +10241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.7.2":
+"prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:

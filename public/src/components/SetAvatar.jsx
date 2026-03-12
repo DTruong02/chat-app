@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
-import { Buffer } from "buffer";
+import multiavatar from "@multiavatar/multiavatar";
 import loader from "../assets/loader.gif";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { setAvatarRoute } from "../utils/APIRoutes";
+
+const generateAvatarOptions = () =>
+  Array.from({ length: 4 }, (_, index) => {
+    const seed = `avatar-${Date.now()}-${index}-${Math.random()}`;
+    const svg = multiavatar(seed);
+    return btoa(svg);
+  });
+
 export default function SetAvatar() {
-  const api = `https://api.multiavatar.com/4645646`;
   const navigate = useNavigate();
   const [avatars, setAvatars] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,38 +37,37 @@ export default function SetAvatar() {
     if (selectedAvatar === undefined) {
       toast.error("Please select an avatar", toastOptions);
     } else {
-      const user = await JSON.parse(
-        localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-      );
-
-      const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
-        image: avatars[selectedAvatar],
-      });
-
-      if (data.isSet) {
-        user.isAvatarImageSet = true;
-        user.avatarImage = data.image;
-        localStorage.setItem(
-          process.env.REACT_APP_LOCALHOST_KEY,
-          JSON.stringify(user)
+      try {
+        const user = await JSON.parse(
+          localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
         );
-        navigate("/");
-      } else {
-        toast.error("Error setting avatar. Please try again.", toastOptions);
+
+        const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
+          image: avatars[selectedAvatar],
+        });
+
+        if (data.isSet) {
+          user.isAvatarImageSet = true;
+          user.avatarImage = data.image;
+          localStorage.setItem(
+            process.env.REACT_APP_LOCALHOST_KEY,
+            JSON.stringify(user)
+          );
+          navigate("/");
+        } else {
+          toast.error("Error setting avatar. Please try again.", toastOptions);
+        }
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.msg || "Unable to save avatar right now.",
+          toastOptions
+        );
       }
     }
   };
 
-  useEffect(async () => {
-    const data = [];
-    for (let i = 0; i < 4; i++) {
-      const image = await axios.get(
-        `${api}/${Math.round(Math.random() * 1000)}`
-      );
-      const buffer = new Buffer(image.data);
-      data.push(buffer.toString("base64"));
-    }
-    setAvatars(data);
+  useEffect(() => {
+    setAvatars(generateAvatarOptions());
     setIsLoading(false);
   }, []);
   return (
@@ -79,16 +85,22 @@ export default function SetAvatar() {
             {avatars.map((avatar, index) => {
               return (
                 <div
+                  key={avatar}
                   className={`avatar ${
                     selectedAvatar === index ? "selected" : ""
                   }`}
                 >
-                  <img
-                    src={`data:image/svg+xml;base64,${avatar}`}
-                    alt="avatar"
-                    key={avatar}
+                  <button
+                    type="button"
+                    className="avatar-button"
                     onClick={() => setSelectedAvatar(index)}
-                  />
+                    aria-label={`Select avatar ${index + 1}`}
+                  >
+                    <img
+                      src={`data:image/svg+xml;base64,${avatar}`}
+                      alt="avatar"
+                    />
+                  </button>
                 </div>
               );
             })}
@@ -134,6 +146,12 @@ const Container = styled.div`
       justify-content: center;
       align-items: center;
       transition: 0.5s ease-in-out;
+      .avatar-button {
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+      }
       img {
         height: 6rem;
         transition: 0.5s ease-in-out;

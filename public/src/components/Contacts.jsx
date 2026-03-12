@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import styled from "styled-components";
 import Logo from "../assets/logo.svg";
 
@@ -6,20 +7,34 @@ export default function Contacts({ contacts, changeChat }) {
   const [currentUserName, setCurrentUserName] = useState(undefined);
   const [currentUserImage, setCurrentUserImage] = useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
-  useEffect(async () => {
-    const data = await JSON.parse(
-      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-    );
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY);
+
+    if (!storedUser) {
+      return;
+    }
+
+    const data = JSON.parse(storedUser);
     setCurrentUserName(data.username);
     setCurrentUserImage(data.avatarImage);
   }, []);
+
   const changeCurrentChat = (index, contact) => {
     setCurrentSelected(index);
     changeChat(contact);
   };
+
+  const handleContactKeyDown = (event, index, contact) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      changeCurrentChat(index, contact);
+    }
+  };
+
   return (
     <>
-      {currentUserImage && currentUserImage && (
+      {currentUserImage && (
         <Container>
           <div className="brand">
             <img src={Logo} alt="logo" />
@@ -28,12 +43,16 @@ export default function Contacts({ contacts, changeChat }) {
           <div className="contacts">
             {contacts.map((contact, index) => {
               return (
-                <div
+                <button
+                  type="button"
                   key={contact._id}
                   className={`contact ${
                     index === currentSelected ? "selected" : ""
                   }`}
                   onClick={() => changeCurrentChat(index, contact)}
+                  onKeyDown={(event) =>
+                    handleContactKeyDown(event, index, contact)
+                  }
                 >
                   <div className="avatar">
                     <img
@@ -44,7 +63,7 @@ export default function Contacts({ contacts, changeChat }) {
                   <div className="username">
                     <h3>{contact.username}</h3>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -64,6 +83,18 @@ export default function Contacts({ contacts, changeChat }) {
     </>
   );
 }
+
+Contacts.propTypes = {
+  contacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      avatarImage: PropTypes.string.isRequired,
+      username: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  changeChat: PropTypes.func.isRequired,
+};
+
 const Container = styled.div`
   display: grid;
   grid-template-rows: 10% 75% 15%;
@@ -97,6 +128,7 @@ const Container = styled.div`
       }
     }
     .contact {
+      border: none;
       background-color: #ffffff34;
       min-height: 5rem;
       cursor: pointer;
@@ -107,6 +139,7 @@ const Container = styled.div`
       gap: 1rem;
       align-items: center;
       transition: 0.5s ease-in-out;
+      text-align: left;
       .avatar {
         img {
           height: 3rem;
